@@ -1,0 +1,172 @@
+-- ============================================
+-- 1. CONFIGURATION
+-- ============================================
+local KeySystem = {
+    -- Put your Linkvertise / LootLabs link here
+    GetKeyLink = "https://linkvertise.com/your-link-here", 
+    
+    -- Change this to your desired key
+    SecretKey = "weeklykey-6767sigma",
+    
+    -- Option: Set to true if you fetch your key dynamically from Pastebin/GitHub
+    UseRemoteKey = false, 
+    RemoteKeyURL = "https://raw.githubusercontent.com/User/Repo/main/key.txt"
+}
+
+-- ============================================
+-- 2. KEY CHECKER FUNCTION
+-- ============================================
+local function IsKeyValid(input)
+    if KeySystem.UseRemoteKey then
+        local success, result = pcall(function()
+            return game:HttpGet(KeySystem.RemoteKeyURL)
+        end)
+        if success and result then
+            local validKey = result:gsub("%s+", "")
+            return input == validKey
+        end
+        return false
+    else
+        return input == KeySystem.SecretKey
+    end
+end
+
+-- ============================================
+-- 3. UI CONSTRUCTION
+-- ============================================
+local CoreGui = game:GetService("CoreGui")
+
+-- Prevent duplicate UIs from stacking
+if CoreGui:FindFirstChild("KeySystemUI") then
+    CoreGui.KeySystemUI:Destroy()
+end
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "KeySystemUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = CoreGui
+
+-- Main Container Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 360, 0, 220)
+MainFrame.Position = UDim2.new(0.5, -180, 0.5, -110)
+MainFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 28)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
+
+local FrameCorner = Instance.new("UICorner")
+FrameCorner.CornerRadius = UDim.new(0, 8)
+FrameCorner.Parent = MainFrame
+
+-- Title Bar
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, 0, 0, 40)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = "Key Verification"
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 18
+TitleLabel.Font = Enum.Font.SourceSansBold
+TitleLabel.Parent = MainFrame
+
+-- Status / Instruction Label
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(1, -40, 0, 25)
+StatusLabel.Position = UDim2.new(0, 20, 0, 40)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = "Get the key from the link below to unlock."
+StatusLabel.TextColor3 = Color3.fromRGB(160, 160, 165)
+StatusLabel.TextSize = 14
+StatusLabel.Font = Enum.Font.SourceSans
+StatusLabel.Parent = MainFrame
+
+-- Key Input TextBox
+local KeyBox = Instance.new("TextBox")
+KeyBox.Size = UDim2.new(1, -40, 0, 38)
+KeyBox.Position = UDim2.new(0, 20, 0, 75)
+KeyBox.BackgroundColor3 = Color3.fromRGB(35, 35, 40)
+KeyBox.BorderSizePixel = 0
+KeyBox.PlaceholderText = "Paste Key Here..."
+KeyBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 110)
+KeyBox.Text = ""
+KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyBox.TextSize = 14
+KeyBox.Font = Enum.Font.SourceSans
+KeyBox.Parent = MainFrame
+
+local BoxCorner = Instance.new("UICorner")
+BoxCorner.CornerRadius = UDim.new(0, 6)
+BoxCorner.Parent = KeyBox
+
+-- "Get Key" Button
+local GetKeyBtn = Instance.new("TextButton")
+GetKeyBtn.Size = UDim2.new(0.46, -5, 0, 38)
+GetKeyBtn.Position = UDim2.new(0, 20, 0, 125)
+GetKeyBtn.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+GetKeyBtn.BorderSizePixel = 0
+GetKeyBtn.Text = "Copy Link"
+GetKeyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+GetKeyBtn.TextSize = 14
+GetKeyBtn.Font = Enum.Font.SourceSansBold
+GetKeyBtn.Parent = MainFrame
+
+local BtnCorner1 = Instance.new("UICorner")
+BtnCorner1.CornerRadius = UDim.new(0, 6)
+BtnCorner1.Parent = GetKeyBtn
+
+-- "Submit Key" Button
+local SubmitBtn = Instance.new("TextButton")
+SubmitBtn.Size = UDim2.new(0.46, -5, 0, 38)
+SubmitBtn.Position = UDim2.new(0.54, 5, 0, 125)
+SubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 122, 255)
+SubmitBtn.BorderSizePixel = 0
+SubmitBtn.Text = "Submit Key"
+SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SubmitBtn.TextSize = 14
+SubmitBtn.Font = Enum.Font.SourceSansBold
+SubmitBtn.Parent = MainFrame
+
+local BtnCorner2 = Instance.new("UICorner")
+BtnCorner2.CornerRadius = UDim.new(0, 6)
+BtnCorner2.Parent = SubmitBtn
+
+-- ============================================
+-- 4. BUTTON EVENTS & LOGIC
+-- ============================================
+
+-- Copy Link to Clipboard
+GetKeyBtn.MouseButton1Click:Connect(function()
+    if setclipboard then
+        setclipboard(KeySystem.GetKeyLink)
+        StatusLabel.Text = "Copied link to clipboard!"
+        StatusLabel.TextColor3 = Color3.fromRGB(80, 200, 120)
+    else
+        StatusLabel.Text = "Clipboard not supported by executor."
+        StatusLabel.TextColor3 = Color3.fromRGB(230, 80, 80)
+    end
+end)
+
+-- Validate Key & Execute Main Script
+SubmitBtn.MouseButton1Click:Connect(function()
+    local userKey = KeyBox.Text
+    
+    if IsKeyValid(userKey) then
+        StatusLabel.Text = "Key Verified! Loading..."
+        StatusLabel.TextColor3 = Color3.fromRGB(80, 200, 120)
+        
+        task.wait(1)
+        ScreenGui:Destroy() -- Destroy UI before executing script
+        
+        -- ========================================
+        -- EXECUTE MAIN SCRIPT
+        -- ========================================
+        loadstring(game:HttpGet('https://raw.smokingscripts.org/vertex.lua'))()
+        
+    else
+        StatusLabel.Text = "Invalid Key! Try again."
+        StatusLabel.TextColor3 = Color3.fromRGB(230, 80, 80)
+        KeyBox.Text = ""
+    end
+end)
